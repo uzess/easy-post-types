@@ -1,7 +1,14 @@
 # Easy Post Types
 This is a light weight framework to create Post Types, Taxonomy, Custom Fields in Posts &amp; Terms.
 
-== Example ==
+### Installation
+1. Upload the `easy-post-types` folder to your `/wp-content/themes/` directory 
+2. Activate it by including it in you functions.php
+<?php
+	require_once get_theme_file_path( '/easy-post-types/loader.php' );
+?>
+
+### Example
 Create a post type called `team`.
 
 <?php
@@ -47,9 +54,4 @@ Create a post type called `team`.
 	), 'normal', 'high' );
 ?>
 
-== Installation ==
-1. Upload the `easy-post-types` folder to your `/wp-content/themes/` directory 
-2. Activate it by including it in you functions.php
-<?php
-	require_once get_theme_file_path( '/easy-post-types/loader.php' );
-?>
+
