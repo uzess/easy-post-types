@@ -10,7 +10,7 @@ This is a light weight framework to create Post Types, Taxonomy, Custom Fields i
 
 ### Example
 Create a post type called `team`.
-
+```
 <?php
 	$team = new Easy_Post_Type( 'team', array(
 		'menu_icon'    => 'dashicons-groups',
@@ -54,4 +54,4 @@ Create a post type called `team`.
 	), 'normal', 'high' );
 ?>
 
-
+```
