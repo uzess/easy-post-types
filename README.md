@@ -9,7 +9,6 @@ require_once get_theme_file_path( '/easy-post-types/loader.php' );
 ````
 ### Example
 Create a post type called `team` & add custom fields.
-
 ### Screenshot
 ![alt ease-post-types-screenshot](https://github.com/uzess/easy-post-types/blob/master/screenshot.jpg)
 
@@ -21,7 +20,8 @@ $team = new Easy_Post_Type( 'team', array(
 	'menu_name' => esc_html__( 'Our Team', 'text-domain' )
 ));
 
-$team->add_meta_box( esc_html__( 'Team Options', 'text-domain' ), array(
+$fields = array(
+    /* Tab General */
 	'general' => array(
 		'comming_soon' => array(
 			'label' => esc_html__( 'Enable Comming Soon mode.', 'text-domain' ),
@@ -66,12 +66,14 @@ $team->add_meta_box( esc_html__( 'Team Options', 'text-domain' ), array(
 			'type' => 'text',
 		)
 	),
+    /* Tab Banner */
 	'banner' => array(
 		'slider_image' => array(
 			'label' => esc_html__( 'Select Image for Home Slider', 'text-domain' ),
 			'type'  => 'image',
 		),
 	),
+    /* Tab Demo */
 	'demo' => array(
 		'use_linked_theme_demo' => array(
 			'label' => esc_html__( 'Treat as a linked theme', 'text-domain' ),
@@ -79,12 +81,14 @@ $team->add_meta_box( esc_html__( 'Team Options', 'text-domain' ), array(
 			'type'  => 'checkbox',
 		)
 	),
+    /* Tab Premium Theme */
 	'premium_theme' => array(
 		'is_premium' => array(
 			'label' => esc_html__( 'is Premium?', 'text-domain' ),
 			'type'  => 'checkbox'
 		)
 	),
+    /* Tab Multiple Demo */
 	'multiple_demo' => array(
 		'demos' => array(
 			'label' => esc_html__( 'Add Demo', 'text-domain' ),
@@ -102,6 +106,7 @@ $team->add_meta_box( esc_html__( 'Team Options', 'text-domain' ), array(
 			)
 		)
 	),
+    /* Tab Closer Look */
 	'closer_look' => array(
 		'closer_look_gallery' => array(
 			'label' => esc_html__( 'Add Images', 'text-domain' ),
@@ -115,12 +120,14 @@ $team->add_meta_box( esc_html__( 'Team Options', 'text-domain' ), array(
 			)
 		),
 	),
+    /* Tab Compare Table */
 	'compare_table' => array(
 		'compare_sub_title' => array(
 			'type' => 'text',
 			'label' => esc_html__( 'Sub Title', 'text-domain' ),
 		)
 	),
+    /* Tab Additional Information */
 	'additional_information' => array(
 		'additional_info' => array(
 			'label' => esc_html__( 'Other Information', 'text-domain' ),
@@ -137,6 +144,7 @@ $team->add_meta_box( esc_html__( 'Team Options', 'text-domain' ), array(
 			)
 		),
 	),
+    /* Tab Change Log */
 	'changes_log' => array(
 		'change_log' => array(
 			'type' => 'repeater',
@@ -153,5 +161,6 @@ $team->add_meta_box( esc_html__( 'Team Options', 'text-domain' ), array(
 			)
 		)
 	)
-));
+);
+$team->add_meta_box( esc_html__( 'Team Options', 'text-domain' ), $fields );
 ```
