@@ -51,3 +51,6 @@ Create a post type called `team`.
 		)
 	), 'normal', 'high' );
 ```
+
+### Screenshot
+![alt ease-post-types-screenshot](https://github.com/uzess/easy-post-types/blob/master/screenshot.jpg)
