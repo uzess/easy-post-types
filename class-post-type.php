@@ -5,7 +5,7 @@
 */
 # Make a separate class for Registering and dealing with custom post types.
 if( !class_exists( 'Easy_Post_Type' ) ):
-class Easy_Post_Type extends Easy_Post_Type_Base{
+class Easy_Post_Type{
 	
 	# Stores Post Type Name.
 	public $post_type;
@@ -17,18 +17,16 @@ class Easy_Post_Type extends Easy_Post_Type_Base{
 	public $post_type_labels;
 
 	# Stores Taxonomy Name.
-	public $taxonomy;
+	public $taxonomy = array();
 
 	# Stores Taxonomy Arguments.
-	public $taxonomy_args;
+	public $taxonomy_args = array();
 
 	# Stores info about meta boxes added by user.
 	public $meta_boxes = array();
 
 	public function __construct( $name, $args = array(), $labels = array() ){
 	    
-	    parent::__construct();
-
 	    # Initializing Variables
 	    $this->post_type        = $this->uglify( $name ); 
 	    $this->post_type_args   = $args;
@@ -38,9 +36,6 @@ class Easy_Post_Type extends Easy_Post_Type_Base{
 	    if( ! post_type_exists( $this->post_type ) ){
 	      add_action( 'init', array( $this, 'register_post_type' ) );
 	    }
-
-	    # Listen for the save post hook
-	    add_action( 'save_post', array( $this, 'save' ) );
 	}
 
 	# Registers Custom Post Type 
@@ -101,12 +96,14 @@ class Easy_Post_Type extends Easy_Post_Type_Base{
 	# Hooked @init
 	public function register_taxonomy(){
 
-		if( taxonomy_exists( $this->taxonomy ) ){
+		foreach ($this->taxonomy as $key => $tax ) {
+			if( taxonomy_exists( $tax ) ){
 
-			register_taxonomy_for_object_type( $this->taxonomy, $this->post_type );
-		}else{
+				register_taxonomy_for_object_type( $tax, $this->post_type );
+			}else{
 
-			register_taxonomy( $this->taxonomy, $this->post_type, $this->taxonomy_args );
+				register_taxonomy( $tax, $this->post_type, $this->taxonomy_args[ $key ] );
+			}
 		}
 	}
 
@@ -115,7 +112,7 @@ class Easy_Post_Type extends Easy_Post_Type_Base{
 
 		if( ! empty( $name ) ){
 
-			$this->taxonomy = $this->uglify( $name );
+			$this->taxonomy[] = $this->uglify( $name );
 
 			if( isset( $labels[ 'menu_name'] ) ){
 				$name   = $labels[ 'menu_name'];
@@ -150,125 +147,43 @@ class Easy_Post_Type extends Easy_Post_Type_Base{
 	           'public'            => true,
 	           'show_ui'           => true,
 	           'show_in_nav_menus' => true,
-
+	           'show_in_rest'	   => true
             );
 
-            $this->taxonomy_args = array_merge( $defaults, $args );
+            $this->taxonomy_args[] = array_merge( $defaults, $args );
 
         	# Add the taxonomy to the post type
         	add_action( 'init', array( $this, 'register_taxonomy' ) );  
 		}
 	}
 
-	# Stores all the meta boxes into the array and add it for registration.
-	public function add_meta_box( $title, $fields = array(), $context = 'normal', $priority = 'default' ){
-
-		$boxes = array(
-			'id'       => $this->uglify( $title ),
-			'title'    => $this->beautify( $title ),
-			'fields'   => $fields,
-			'context'  => $context,
-			'priority' => $priority
-		);
-
-		$this->meta_boxes[] = $boxes;
-
-		add_action( 'add_meta_boxes_' . $this->post_type, array( $this, 'register_meta_box' ) );
+	public function beautify( $string ){
+	    return ucwords( str_replace( '_', ' ', $string ) );
 	}
 
-	# Registers all the meta boxes from the array.
-	public function register_meta_box(){
-
-		if( is_array( $this->meta_boxes ) ){
-			foreach( $this->meta_boxes as $meta ){
-
-				add_meta_box( $meta[ 'id' ], $meta[ 'title' ], array( $this, 'render_meta_box' ), $this->post_type, $meta[ 'context' ], $meta[ 'priority' ], $meta[ 'fields' ] );
-			}
-		}
+	public function uglify( $string ){
+	    return strtolower( str_replace( ' ', '_', $string ) );
 	}
 
-	public function render_meta_box( $post, $box ){
+	public function pluralize( $string ){
 
-		if( is_array( $box[ 'args' ] ) ){
+		$last = $string[ strlen( $string ) - 1 ];
 
-			wp_nonce_field( 'easy_post_type_meta_nonce', 'name_meta_nonce' );
-			$class = 'single-mode';
-		?>
-			<div class="easy-post-type-meta-box-tab-wrapper clearfix">
-				<?php if( count( $box[ 'args' ] ) > 1 ): $class = 'tab-mode'; ?>
-					<div class="easy-post-type-meta-box-tab-menu">
-						<ul>
-							<?php foreach( $box[ 'args' ] as $section => $fields ): ?>
-								<li>
-									<a href="#<?php echo esc_attr( $this->uglify( $section ) ); ?>" class="easy-post-type-rel-tab">
-										<?php echo esc_html( $this->beautify( $section ) ); ?>
-									</a>
-								</li>
-							<?php endforeach; ?>
-						</ul>
-					</div>
-				<?php endif; ?>
-				<div class="<?php echo esc_attr( $class ); ?> easy-post-type-meta-box-tab-content">
-					<section>
-					<?php $count = 0; foreach( $box[ 'args' ] as $section => $fields ): ?>
-						<div id="<?php echo esc_attr( $this->uglify( $section ) ); ?>" class="<?php echo $count !== 0 ? esc_attr( 'hidden' ) : ''; ?>">
-							<?php 
-								foreach( $fields as $key => $field ){
-									$field[ 'id' ]    = $key;
-									$field[ 'post' ]  = $post;
-									$field[ 'value' ] = $this->get_value( get_post_meta( $field[ 'post' ]->ID, $field[ 'id' ], true ), $field );
-									$this->render_field( $field );
-								} 
-							?>
-						</div>
-					<?php $count++; endforeach; ?>
-					</section>
-				</div>
-				<div style="clear:both"></div>
-			</div>
-			<?php
-		}
-	}
+		if( $last == 'y' ){
 
-	public function save( $post_id ){
-      	
-      	$p = wp_unslash( $_POST );
-		if ( empty( $p ) || ! isset(  $p[ 'name_meta_nonce' ] ) || ! wp_verify_nonce( $p[ 'name_meta_nonce' ], 'easy_post_type_meta_nonce' ) ) {
-			return;
+		  $cut = substr( $string, 0, -1 );
+		  # convert y to ies
+		  $plural = $cut . 'ies';
+		} elseif ( 's' == $last ) {
+
+		  $plural = $string;
+		} else{
+
+		  # fjust attach an s
+		  $plural = $string . 's';
 		}
 
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
-		}
-
-		//Don't update on Quick Edit
-		if (defined('DOING_AJAX') ) {
-			return $post_id;
-		}
-
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
-
-		if ( $this->post_type === $p[ 'post_type' ] ) {
-
-			# do stuff
-			foreach( $this->meta_boxes as $meta ){
-				foreach( $meta[ 'fields' ] as $section => $fields){
-					foreach( $fields as $id => $field ){
-
-						if( 'separator' == $field[ 'type' ] )
-							continue;
-						$value = $this->sanitize( array(
-							'type'  => $field[ 'type' ],
-							'value' => $p[ $id ]
-						));
-
-						update_post_meta( $post_id, $id, $value );
-					} 
-				}
-			}
-		}
+		return $plural;
 	}
 }
 endif;
